@@ -1,0 +1,50 @@
+### Player ratings & reliability - example requests (IntelliJ / VS Code REST Client)
+### Replace the ids with real user ids from GET http://localhost:4000/users
+
+@base = http://localhost:4000
+@playerA = f9099e92-ce36-40dc-a69c-44960ba083f3
+@playerB = efb574cf-4ceb-4289-a1cc-b1f28e25e7fd
+
+### Player B rates player A after game g-101
+POST {{base}}/users/{{playerA}}/ratings
+Content-Type: application/json
+
+{
+  "raterId": "{{playerB}}",
+  "gameId": "g-101",
+  "sport": "BADMINTON",
+  "skill": 4,
+  "sportsmanship": 5,
+  "comment": "Great rallies, very fair on line calls"
+}
+
+### Ratings player A has received
+GET {{base}}/users/{{playerA}}/ratings
+
+### Match result: A beat B in singles -> updates both Elo ratings
+POST {{base}}/matches/results
+Content-Type: application/json
+
+{
+  "gameId": "g-101",
+  "sport": "BADMINTON",
+  "winnerIds": ["{{playerA}}"],
+  "loserIds": ["{{playerB}}"]
+}
+
+### Player B didn't turn up to game g-102
+POST {{base}}/users/{{playerB}}/attendance
+Content-Type: application/json
+
+{
+  "gameId": "g-102",
+  "status": "NO_SHOW",
+  "sport": "BADMINTON",
+  "gameTime": "2026-10-14T18:00:00Z"
+}
+
+### Player B's reliability score and history
+GET {{base}}/users/{{playerB}}/reliability
+
+### Full player profile: Elo + peer ratings per sport + reliability
+GET {{base}}/users/{{playerA}}/profile
