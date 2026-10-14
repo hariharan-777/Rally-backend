@@ -8,6 +8,7 @@ import com.userservice.User.model.user;
 import com.userservice.User.repository.UserRepository;
 import com.userservice.kafka.kafkaproducer;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +19,19 @@ public class UserSevice {
     private UserRepository userRepository;
     private final BillingServiceGrpcClient billingServiceGrpcClient;
     private final kafkaproducer kafkaProducer;
+    private final RatingService ratingService;
+    private final ReliabilityService reliabilityService;
 
     public UserSevice(UserRepository userRepository,
                       BillingServiceGrpcClient billingServiceGrpcClient,
-                      kafkaproducer kafkaProducer) {
+                      kafkaproducer kafkaProducer,
+                      RatingService ratingService,
+                      ReliabilityService reliabilityService) {
         this.userRepository = userRepository;
         this.billingServiceGrpcClient = billingServiceGrpcClient;
         this.kafkaProducer = kafkaProducer;
+        this.ratingService = ratingService;
+        this.reliabilityService = reliabilityService;
     }
     public List<UserResponseDTO> getUsers (){
         List<user> users = userRepository.findAll();
@@ -53,7 +60,11 @@ public class UserSevice {
         user updatedUser = userRepository.save(User);
         return UserMapper.toDTO(updatedUser);
     }
+    @Transactional
     public void deleteUser(UUID id) {
+        // Remove the player's ratings and attendance history along with the account.
+        ratingService.deleteAllForUser(id);
+        reliabilityService.deleteAllForUser(id);
         userRepository.deleteById(id);
     }
 }
