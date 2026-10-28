@@ -8,8 +8,14 @@ spring:
         webflux:
           routes:
             - id: user-service
-              uri: http://localhost:4000
+              uri: http://user-service:4000
               predicates:
                 - Path=/api/users/**
+              filters:
+                - StripPrefix=1
+            - id: venue-service
+              uri: http://venue-service:4006
+              predicates:
+                - Path=/api/venues/**
               filters:
                 - StripPrefix=1
